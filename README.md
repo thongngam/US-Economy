@@ -72,3 +72,47 @@ Each series is plotted individually with recession shading. An overlay dashboard
 - **Housing** — House prices, Case-Shiller HPI, mortgage rates
 - **Monetary** — Fed Funds Rate, yield curve spread
 - **GDP & Employment** — GDP, Real GDP, unemployment, labor participation, household income
+
+### Overlay Dashboard
+
+![US Economy Dashboard](plots/overlay_all_series.png)
+
+### Inflation
+
+![CPI All Items](plots/cpi_all_items.png)
+
+![Core CPI](plots/core_cpi_less_food_and_energy.png)
+
+### Housing
+
+![Median House Price](plots/median_house_price.png)
+
+![Case-Shiller HPI](plots/case-shiller_hpi.png)
+
+![30yr Mortgage Rate](plots/30yr_mortgage_rate.png)
+
+### Taxes
+
+![Federal Receipts](plots/federal_receipts.png)
+
+### Monetary Policy
+
+![Fed Funds Rate](plots/fed_funds_rate.png)
+
+![10Y-2Y Treasury Spread](plots/10y-2y_treasury_spread.png)
+
+### GDP
+
+![GDP](plots/gdp.png)
+
+![Real GDP](plots/real_gdp.png)
+
+### Employment
+
+![Unemployment Rate](plots/unemployment_rate.png)
+
+![Labor Force Participation](plots/labor_force_participation.png)
+
+### Income
+
+![Median Household Income](plots/median_household_income.png)
