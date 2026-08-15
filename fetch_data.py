@@ -36,6 +36,8 @@ SERIES_CONFIG = [
     ("CIVPART", "labor_participation.csv", "lin", "m"),
     # Income
     ("MEHOINUSA646N", "median_household_income.csv", "lin", "a"),
+    # Recession indicator
+    ("USREC", "usrec.csv", "lin", "m"),
 ]
 
 

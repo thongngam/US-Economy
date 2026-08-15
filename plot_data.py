@@ -4,13 +4,43 @@ Resamples all series to monthly resolution and generates charts.
 """
 
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.patches as mpatches
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent / "data"
 PLOTS_DIR = Path(__file__).parent / "plots"
 PLOTS_DIR.mkdir(exist_ok=True)
+
+USREC_FILE = DATA_DIR / "usrec.csv"
+
+
+def load_recessions() -> list[tuple[pd.Timestamp, pd.Timestamp]]:
+    """Load US recession periods from USREC series (peak to trough)."""
+    df = pd.read_csv(USREC_FILE)
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date").sort_index()
+    # Find contiguous runs of value == 1
+    in_recession = df["value"] == 1
+    recessions = []
+    start = None
+    for date, val in in_recession.items():
+        if val and start is None:
+            start = date
+        elif not val and start is not None:
+            recessions.append((start, date))
+            start = None
+    if start is not None:
+        recessions.append((start, in_recession.index[-1]))
+    return recessions
+
+
+def shade_recessions(ax: plt.Axes, recessions: list[tuple[pd.Timestamp, pd.Timestamp]]):
+    """Add gray shading for recession periods on an axes."""
+    for start, end in recessions:
+        ax.axvspan(start, end, color="gray", alpha=0.2, linewidth=0)
 
 # (csv_filename, series_label, y_label, group, freq)
 # freq: m=monthly, w=weekly, d=daily, q=quarterly, a=annual
@@ -71,13 +101,17 @@ def load_and_resample(csv_filename: str, freq: str = "m") -> pd.Series:
     return monthly
 
 
-def plot_individual(series: pd.Series, label: str, y_label: str, group: str):
+def plot_individual(series: pd.Series, label: str, y_label: str, group: str,
+                    recessions: list[tuple[pd.Timestamp, pd.Timestamp]]):
     """Create a single-series plot."""
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.plot(series.index, series.values, linewidth=1.2, color="#1f77b4")
+    shade_recessions(ax, recessions)
+    ax.plot(series.index, series.values, linewidth=1.2, color="#1f77b4", zorder=3)
     ax.set_title(f"US Economy: {label}", fontsize=14, fontweight="bold")
     ax.set_ylabel(y_label)
     ax.set_xlabel("Date")
+    # Clip x-axis to data range
+    ax.set_xlim(series.index.min(), series.index.max())
     ax.xaxis.set_major_locator(mdates.YearLocator(5))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     ax.grid(True, alpha=0.3)
@@ -88,7 +122,8 @@ def plot_individual(series: pd.Series, label: str, y_label: str, group: str):
     print(f"  Saved: {safe_name}.png")
 
 
-def plot_overlay(all_series: dict[str, pd.Series]):
+def plot_overlay(all_series: dict[str, pd.Series],
+                 recessions: list[tuple[pd.Timestamp, pd.Timestamp]]):
     """Create overlay plot with all series normalized to 0-100."""
     fig, axes = plt.subplots(4, 1, figsize=(14, 18), sharex=True)
 
@@ -115,6 +150,7 @@ def plot_overlay(all_series: dict[str, pd.Series]):
     }
 
     for ax, (group_name, series_names) in zip(axes, groups.items()):
+        shade_recessions(ax, recessions)
         for name in series_names:
             if name in all_series:
                 s = all_series[name].dropna()
@@ -127,11 +163,16 @@ def plot_overlay(all_series: dict[str, pd.Series]):
                 else:
                     normalized = (s - smin) / (smax - smin) * 100
                 ax.plot(normalized.index, normalized.values, label=name,
-                        linewidth=1.3, color=colors.get(name, None))
+                        linewidth=1.3, color=colors.get(name, None), zorder=3)
         ax.set_title(group_name, fontsize=12, fontweight="bold")
         ax.set_ylabel("Normalized (0-100)")
         ax.legend(loc="upper left", fontsize=8)
         ax.grid(True, alpha=0.3)
+
+    # Clip x-axis to the common data range across all overlay series
+    all_min = min(s.index.min() for s in all_series.values() if not s.dropna().empty)
+    all_max = max(s.index.max() for s in all_series.values() if not s.dropna().empty)
+    axes[-1].set_xlim(all_min, all_max)
 
     axes[-1].set_xlabel("Date")
     axes[-1].xaxis.set_major_locator(mdates.YearLocator(5))
@@ -145,6 +186,10 @@ def plot_overlay(all_series: dict[str, pd.Series]):
 
 
 def main():
+    print("Loading recession periods...")
+    recessions = load_recessions()
+    print(f"  Found {len(recessions)} recession periods\n")
+
     print("Loading and resampling series to monthly resolution...\n")
     all_series = {}
 
@@ -161,10 +206,10 @@ def main():
 
     print("\nGenerating individual plots...")
     for csv_filename, label, y_label, group, freq in SERIES:
-        plot_individual(all_series[label], label, y_label, group)
+        plot_individual(all_series[label], label, y_label, group, recessions)
 
     print("\nGenerating overlay plot...")
-    plot_overlay(all_series)
+    plot_overlay(all_series, recessions)
 
     print(f"\nDone. All plots saved to: {PLOTS_DIR}")
 
