@@ -111,7 +111,7 @@ def plot_individual(series: pd.Series, label: str, y_label: str, group: str,
     ax.set_ylabel(y_label)
     ax.set_xlabel("Date")
     # Clip x-axis: start 1960, end at data range
-    ax.set_xlim(pd.Timestamp("1960-01-01"), series.index.max())
+    ax.set_xlim(pd.Timestamp("1990-01-01"), series.index.max())
     ax.xaxis.set_major_locator(mdates.YearLocator(5))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     ax.grid(True, alpha=0.3)
@@ -171,7 +171,7 @@ def plot_overlay(all_series: dict[str, pd.Series],
 
     # Clip x-axis: start 1960, end at data range
     all_max = max(s.index.max() for s in all_series.values() if not s.dropna().empty)
-    axes[-1].set_xlim(pd.Timestamp("1960-01-01"), all_max)
+    axes[-1].set_xlim(pd.Timestamp("1990-01-01"), all_max)
 
     axes[-1].set_xlabel("Date")
     axes[-1].xaxis.set_major_locator(mdates.YearLocator(5))
