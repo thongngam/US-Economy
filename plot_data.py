@@ -12,21 +12,22 @@ DATA_DIR = Path(__file__).parent / "data"
 PLOTS_DIR = Path(__file__).parent / "plots"
 PLOTS_DIR.mkdir(exist_ok=True)
 
-# (csv_filename, series_label, y_label, group)
+# (csv_filename, series_label, y_label, group, freq)
+# freq: m=monthly, w=weekly, d=daily, q=quarterly, a=annual
 SERIES = [
-    ("cpi_urban_consumers.csv",      "CPI (All Items)",              "Index 1982-1984=100", "Inflation"),
-    ("cpi_core.csv",                 "Core CPI (Less Food & Energy)","Index 1982-1984=100", "Inflation"),
-    ("median_house_price.csv",       "Median House Price",           "$",                  "Housing"),
-    ("case_shiller_hpi.csv",         "Case-Shiller HPI",             "Index Jan 2000=100", "Housing"),
-    ("mortgage_rate_30yr.csv",       "30yr Mortgage Rate",           "%",                  "Housing"),
-    ("federal_receipts.csv",         "Federal Receipts",             "$ Millions",          "Taxes"),
-    ("federal_funds_rate.csv",       "Fed Funds Rate",               "%",                  "Monetary"),
-    ("treasury_spread_10y2y.csv",    "10Y-2Y Treasury Spread",       "%",                  "Monetary"),
-    ("gdp.csv",                      "GDP",                          "$ Billions",          "GDP"),
-    ("real_gdp.csv",                 "Real GDP",                     "$ Billions (2017$)",  "GDP"),
-    ("unemployment_rate.csv",        "Unemployment Rate",            "%",                  "Employment"),
-    ("labor_participation.csv",      "Labor Force Participation",    "%",                  "Employment"),
-    ("median_household_income.csv",  "Median Household Income",      "$",                  "Income"),
+    ("cpi_urban_consumers.csv",      "CPI (All Items)",              "Index 1982-1984=100", "Inflation",     "m"),
+    ("cpi_core.csv",                 "Core CPI (Less Food & Energy)","Index 1982-1984=100", "Inflation",     "m"),
+    ("median_house_price.csv",       "Median House Price",           "$",                  "Housing",       "q"),
+    ("case_shiller_hpi.csv",         "Case-Shiller HPI",             "Index Jan 2000=100", "Housing",       "m"),
+    ("mortgage_rate_30yr.csv",       "30yr Mortgage Rate",           "%",                  "Housing",       "w"),
+    ("federal_receipts.csv",         "Federal Receipts",             "$ Millions",          "Taxes",         "a"),
+    ("federal_funds_rate.csv",       "Fed Funds Rate",               "%",                  "Monetary",      "m"),
+    ("treasury_spread_10y2y.csv",    "10Y-2Y Treasury Spread",       "%",                  "Monetary",      "d"),
+    ("gdp.csv",                      "GDP",                          "$ Billions",          "GDP",           "q"),
+    ("real_gdp.csv",                 "Real GDP",                     "$ Billions (2017$)",  "GDP",           "q"),
+    ("unemployment_rate.csv",        "Unemployment Rate",            "%",                  "Employment",    "m"),
+    ("labor_participation.csv",      "Labor Force Participation",    "%",                  "Employment",    "m"),
+    ("median_household_income.csv",  "Median Household Income",      "$",                  "Income",        "a"),
 ]
 
 # Normalization ranges for overlay (min-max scaling)
@@ -47,13 +48,26 @@ NORM_RANGES = {
 }
 
 
-def load_and_resample(csv_filename: str) -> pd.Series:
-    """Load CSV and resample to monthly frequency (averaging for sub-monthly data)."""
+def load_and_resample(csv_filename: str, freq: str = "m") -> pd.Series:
+    """Load CSV and resample to monthly frequency.
+
+    freq: original data frequency
+      "m" = monthly (no resample needed)
+      "w" = weekly (average to monthly)
+      "d" = daily (average to monthly)
+      "q" = quarterly (forward-fill to monthly)
+      "a" = annual (forward-fill to monthly)
+    """
     df = pd.read_csv(DATA_DIR / csv_filename)
     df["date"] = pd.to_datetime(df["date"])
     df = df.dropna(subset=["value"])
     df = df.set_index("date").sort_index()
-    monthly = df["value"].resample("MS").mean()
+    if freq in ("w", "d"):
+        monthly = df["value"].resample("MS").mean()
+    elif freq in ("q", "a"):
+        monthly = df["value"].resample("MS").ffill()
+    else:
+        monthly = df["value"].resample("MS").mean()
     return monthly
 
 
@@ -134,8 +148,8 @@ def main():
     print("Loading and resampling series to monthly resolution...\n")
     all_series = {}
 
-    for csv_filename, label, y_label, group in SERIES:
-        monthly = load_and_resample(csv_filename)
+    for csv_filename, label, y_label, group, freq in SERIES:
+        monthly = load_and_resample(csv_filename, freq)
         all_series[label] = monthly
         print(f"  {label}: {len(monthly)} months ({monthly.index.min().date()} to {monthly.index.max().date()})")
 
@@ -146,7 +160,7 @@ def main():
     print(f"\nMerged monthly data saved: data/merged_monthly.csv ({len(merged_df)} rows, {len(merged_df.columns)} columns)")
 
     print("\nGenerating individual plots...")
-    for csv_filename, label, y_label, group in SERIES:
+    for csv_filename, label, y_label, group, freq in SERIES:
         plot_individual(all_series[label], label, y_label, group)
 
     print("\nGenerating overlay plot...")
