@@ -110,8 +110,8 @@ def plot_individual(series: pd.Series, label: str, y_label: str, group: str,
     ax.set_title(f"US Economy: {label}", fontsize=14, fontweight="bold")
     ax.set_ylabel(y_label)
     ax.set_xlabel("Date")
-    # Clip x-axis to data range
-    ax.set_xlim(series.index.min(), series.index.max())
+    # Clip x-axis: start 1960, end at data range
+    ax.set_xlim(pd.Timestamp("1960-01-01"), series.index.max())
     ax.xaxis.set_major_locator(mdates.YearLocator(5))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     ax.grid(True, alpha=0.3)
@@ -169,10 +169,9 @@ def plot_overlay(all_series: dict[str, pd.Series],
         ax.legend(loc="upper left", fontsize=8)
         ax.grid(True, alpha=0.3)
 
-    # Clip x-axis to the common data range across all overlay series
-    all_min = min(s.index.min() for s in all_series.values() if not s.dropna().empty)
+    # Clip x-axis: start 1960, end at data range
     all_max = max(s.index.max() for s in all_series.values() if not s.dropna().empty)
-    axes[-1].set_xlim(all_min, all_max)
+    axes[-1].set_xlim(pd.Timestamp("1960-01-01"), all_max)
 
     axes[-1].set_xlabel("Date")
     axes[-1].xaxis.set_major_locator(mdates.YearLocator(5))
