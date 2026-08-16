@@ -116,3 +116,63 @@ Each series is plotted individually with recession shading. An overlay dashboard
 ### Income
 
 ![Median Household Income](plots/median_household_income.png)
+
+## COVID Period Econometrics (2019-2023)
+
+Focused analysis on the COVID-19 recession and recovery using multivariable OLS regression.
+
+### COVID Period Time Series
+
+![COVID Timeseries](plots/covid_timeseries.png)
+
+### Correlation Matrix
+
+![COVID Correlation](plots/covid_correlation.png)
+
+### Regression Models
+
+#### Model 1: Unemployment Rate
+**Unemployment ~ Fed Funds + CPI + Real GDP + Mortgage Rate**
+- R² = 0.749, Adj R² = 0.731, F = 41.13 (p < 0.001)
+- Real GDP (p < 0.001) and CPI (p < 0.001) are highly significant
+- Fed Funds Rate not significant (p = 0.211)
+
+![Unemployment Regression](plots/covid_reg_unemployment.png)
+
+#### Model 2: CPI Inflation
+**CPI MoM% ~ Fed Funds + Yield Spread + Mortgage Rate + Real GDP**
+- R² = 0.403, Adj R² = 0.359
+- Fed Funds Rate significant and negative (p = 0.026) — rate hikes slow inflation
+- Real GDP significant (p = 0.001)
+
+![Inflation Regression](plots/covid_reg_inflation.png)
+
+#### Model 3: Real GDP Growth
+**GDP MoM% ~ Fed Funds + Unemployment + Mortgage Rate**
+- R² = 0.045 — none of the predictors explain GDP growth well in this period
+- The COVID shock was exogenous, not driven by standard macro variables
+
+![GDP Regression](plots/covid_reg_gdp.png)
+
+#### Model 4: House Price Growth
+**House Price MoM% ~ Mortgage Rate + Fed Funds + CPI + Unemployment**
+- R² = 0.110 — weak explanatory power
+- Housing boom driven by supply constraints, remote work demand, and low inventory — not captured by standard variables
+
+![Housing Regression](plots/covid_reg_housing.png)
+
+#### Lag Analysis (Granger-style)
+**CPI ~ Unemployment Lag 1/2/3**
+- R² = 0.227, significant overall (F = 5.19, p = 0.003)
+- Lag 1 coefficient negative (-2.76) but marginally significant (p = 0.106)
+- Suggests rising unemployment precedes disinflation with ~1 month lag
+
+![Lag Regression](plots/covid_reg_lag.png)
+
+### Key Findings
+
+1. **Unemployment model fits well** (R² = 0.75): GDP contraction and inflation spikes explain most of the COVID unemployment surge
+2. **Fed Funds Rate affects inflation**: Rate hikes are associated with lower inflation growth (coefficient = -0.11)
+3. **GDP and housing not explainable** by standard variables during COVID — the shock was exogenous (pandemic lockdowns, fiscal stimulus, supply chain disruption)
+4. **Unemployment leads inflation**: Rising unemployment precedes lower CPI growth by ~1 month (Phillips Curve relationship)
+5. **Multicollinearity**: CPI and GDP highly correlated (0.91), mortgage rate and Fed Funds highly correlated (0.91) — caution interpreting individual coefficients
