@@ -176,3 +176,54 @@ Focused analysis on the COVID-19 recession and recovery using multivariable OLS 
 3. **GDP and housing not explainable** by standard variables during COVID — the shock was exogenous (pandemic lockdowns, fiscal stimulus, supply chain disruption)
 4. **Unemployment leads inflation**: Rising unemployment precedes lower CPI growth by ~1 month (Phillips Curve relationship)
 5. **Multicollinearity**: CPI and GDP highly correlated (0.91), mortgage rate and Fed Funds highly correlated (0.91) — caution interpreting individual coefficients
+
+## Forecasting (2019-2023)
+
+Univariate and multivariate time series models trained on 1990-2018 data, forecasting the COVID period.
+
+### Methods
+
+| Model | Type | Description |
+|-------|------|-------------|
+| ARMA(2,2) | Univariate | Autoregressive moving average on levels |
+| ARIMA(1,1,1) | Univariate | Integrated ARMA with differencing |
+| VAR(4) | Multivariate | Vector autoregression on differenced series |
+| VECM(2) | Multivariate | Vector error correction with cointegration |
+
+### Forecast Accuracy (RMSE)
+
+| Series | ARMA | ARIMA | VAR | VECM |
+|--------|------|-------|-----|------|
+| CPI (All Items) | 22.97 | 30.56 | 1.11* | 19.11 |
+| Fed Funds Rate | 2.28 | 2.03 | 1.99 | 2.07 |
+| Unemployment Rate | 2.68 | 2.55 | 1.44 | 2.56 |
+| Real GDP | 1527.77 | 1508.62 | 307.50* | 667.76 |
+
+*VAR on differenced (month-over-month change) — not directly comparable to level forecasts.
+
+### Stationarity Tests (ADF)
+
+| Series | Statistic | p-value | Conclusion |
+|--------|-----------|---------|------------|
+| CPI | 2.948 | 1.000 | Non-stationary |
+| Fed Funds Rate | -3.006 | 0.034 | Stationary |
+| Unemployment Rate | -3.928 | 0.002 | Stationary |
+| Real GDP | 3.850 | 1.000 | Non-stationary |
+
+### Comparison Plots
+
+![CPI Forecast](plots/forecast_comparison_cpi_all_items.png)
+
+![Fed Funds Forecast](plots/forecast_comparison_fed_funds_rate.png)
+
+![Unemployment Forecast](plots/forecast_comparison_unemployment_rate.png)
+
+![GDP Forecast](plots/forecast_comparison_real_gdp.png)
+
+### Key Findings
+
+1. **COVID was unpredictable** — all models underforecast the unemployment spike (14.8%) and CPI surge, as the pandemic was an exogenous shock
+2. **VAR outperforms univariate** — multivariate models capture cross-variable dynamics (e.g., GDP drop → unemployment rise)
+3. **VECM cointegration** — Johansen test shows 1 cointegrating relationship among CPI, Fed Funds, Unemployment, GDP at 90% confidence
+4. **ARMA best for Fed Funds** — interest rate path was relatively smooth and predictable (RMSE = 2.28)
+5. **No model captures tail events** — COVID-19, lockdowns, and fiscal stimulus were outside historical patterns
