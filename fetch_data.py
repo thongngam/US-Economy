@@ -11,7 +11,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-FRED_API_KEY = os.getenv("FRED_API_KEY", "40baa5df1a71a791fa569b4dd6462c39")
+FRED_API_KEY = os.getenv("FRED_API_KEY")
+if not FRED_API_KEY:
+    raise SystemExit(
+        "FRED_API_KEY is not set. Create a .env file next to this script "
+        "(get a free key at https://fred.stlouisfed.org/docs/api/api_key/)."
+    )
 FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
 
 # Series configurations: (series_id, output_filename, units, frequency)

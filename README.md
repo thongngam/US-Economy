@@ -46,6 +46,12 @@ US Economy/
 pip install -r requirements.txt
 ```
 
+Create a `.env` file in the project root with your FRED API key (free, from https://fred.stlouisfed.org/docs/api/api_key/):
+
+```
+FRED_API_KEY=your_key_here
+```
+
 ## Usage
 
 1. **Fetch data** from FRED API:

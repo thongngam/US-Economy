@@ -15,7 +15,7 @@ All data pulled from: https://fred.stlouisfed.org/
 | Series ID | Name | Units | Frequency | Latest Value | Updated |
 |-----------|------|-------|-----------|--------------|---------|
 | `CPIAUCSL` | Consumer Price Index for All Urban Consumers: All Items | Index 1982-1984=100 | Monthly | 332.813 | Jul 2026 |
-| `CPILFESL` | CPI for All Urban Consumers: All Items Less Food and Energy | Index 1982-1984=100 | Monthly | - | - |
+| `CPILFESL` | CPI for All Urban Consumers: All Items Less Food and Energy | Index 1982-1984=100 | Monthly | 336.789 | Jul 2026 |
 
 **Source:** U.S. Bureau of Labor Statistics
 **Description:** The CPI is a measure of the average change over time in the prices paid by urban consumers for a market basket of consumer goods and services. CPIAUCSL includes ~88% of total population. CPILFESL (Core CPI) excludes volatile food and energy prices, making it the preferred measure for underlying inflation trends.
@@ -48,7 +48,7 @@ All data pulled from: https://fred.stlouisfed.org/
 | Series ID | Name | Units | Frequency | Latest Value | Updated |
 |-----------|------|-------|-----------|--------------|---------|
 | `FEDFUNDS` | Federal Funds Effective Rate | Percent | Monthly | 3.63% | Jul 2026 |
-| `T10Y2Y` | 10-Year Treasury Constant Maturity Minus 2-Year | Percent | Daily | - | - |
+| `T10Y2Y` | 10-Year Treasury Constant Maturity Minus 2-Year | Percent | Daily | 0.51% | Aug 2026 |
 
 **Source:** Board of Governors of the Federal Reserve System
 **Description:**
@@ -60,7 +60,7 @@ All data pulled from: https://fred.stlouisfed.org/
 | Series ID | Name | Units | Frequency | Latest Value | Updated |
 |-----------|------|-------|-----------|--------------|---------|
 | `GDP` | Gross Domestic Product | Billions of Dollars, SAAR | Quarterly | $32,475.21B | Q2 2026 |
-| `GDPC1` | Real Gross Domestic Product | Billions of Chained 2017 Dollars, SAAR | Quarterly | - | - |
+| `GDPC1` | Real Gross Domestic Product | Billions of Chained 2017 Dollars, SAAR | Quarterly | $24,270.6B | Q2 2026 |
 
 **Source:** U.S. Bureau of Economic Analysis
 **Description:** GDP is the total market value of all final goods and services produced within the US. Real GDP (GDPC1) is inflation-adjusted, providing a true measure of economic growth.
@@ -70,7 +70,7 @@ All data pulled from: https://fred.stlouisfed.org/
 | Series ID | Name | Units | Frequency | Latest Value | Updated |
 |-----------|------|-------|-----------|--------------|---------|
 | `UNRATE` | Unemployment Rate | Percent, Seasonally Adjusted | Monthly | 4.1% | Jul 2026 |
-| `CIVPART` | Labor Force Participation Rate | Percent, Seasonally Adjusted | Monthly | - | - |
+| `CIVPART` | Labor Force Participation Rate | Percent, Seasonally Adjusted | Monthly | 61.4% | Jul 2026 |
 
 **Source:** U.S. Bureau of Labor Statistics
 **Description:**
@@ -81,7 +81,7 @@ All data pulled from: https://fred.stlouisfed.org/
 
 | Series ID | Name | Units | Frequency | Latest Value | Updated |
 |-----------|------|-------|-----------|--------------|---------|
-| `MEHOINUSA646N` | Median Household Income in the United States | Dollars | Annual | - | - |
+| `MEHOINUSA646N` | Median Household Income in the United States | Dollars | Annual | $83,730 | 2024 |
 
 **Source:** U.S. Census Bureau
 **Description:** Median household income provides a measure of the purchasing power and standard of living for the typical American household.
@@ -90,10 +90,14 @@ All data pulled from: https://fred.stlouisfed.org/
 
 ```
 US Economy/
-├── architecture.md              # This file - project documentation
-├── requirements.txt             # Python dependencies
-├── fetch_data.py                # Script to pull data from FRED API
-├── plot_data.py                 # Script to plot and merge series
+├── README.md                          # Project overview, usage, results
+├── architecture.md                    # This file - project documentation
+├── requirements.txt                   # Python dependencies
+├── fetch_data.py                      # Script to pull data from FRED API
+├── plot_data.py                       # Merge series to monthly, generate plots
+├── covid_analysis.py                  # COVID period (2019-2023) econometrics
+├── forecast.py                        # ARMA/ARIMA/VAR/VECM forecasting
+├── .env                               # FRED API key (not committed)
 ├── data/
 │   ├── cpi_urban_consumers.csv          # CPIAUCSL (monthly)
 │   ├── cpi_core.csv                     # CPILFESL (monthly)
@@ -108,22 +112,15 @@ US Economy/
 │   ├── unemployment_rate.csv            # UNRATE (monthly)
 │   ├── labor_participation.csv          # CIVPART (monthly)
 │   ├── median_household_income.csv      # MEHOINUSA646N (annual)
+│   ├── usrec.csv                        # USREC NBER recession indicator (monthly)
 │   └── merged_monthly.csv               # All series merged to monthly resolution
 └── plots/
-    ├── cpi_all_items.png
-    ├── core_cpi_less_food_and_energy.png
-    ├── median_house_price.png
-    ├── case-shiller_hpi.png
-    ├── 30yr_mortgage_rate.png
-    ├── federal_receipts.png
-    ├── fed_funds_rate.png
-    ├── 10y-2y_treasury_spread.png
-    ├── gdp.png
-    ├── real_gdp.png
-    ├── unemployment_rate.png
-    ├── labor_force_participation.png
-    ├── median_household_income.png
-    └── overlay_all_series.png
+    ├── *.png                            # 13 individual series plots
+    ├── overlay_all_series.png           # 4-panel normalized dashboard
+    ├── covid_timeseries.png             # COVID period variable panels
+    ├── covid_correlation.png            # Correlation matrix
+    ├── covid_reg_*.png                  # 4 OLS models + lag analysis diagnostics
+    └── forecast_*.png                   # ARMA/ARIMA/VAR/VECM forecasts + comparisons
 ```
 
 ## Data Processing
@@ -173,6 +170,11 @@ All 13 series are normalized to a 0-100 scale (min-max normalization) and groupe
 |------|--------|--------|
 | 2026-08-14 | Project setup, FRED data series research | Completed |
 | 2026-08-14 | Architecture documentation | Completed |
-| 2026-08-14 | Create fetch_data.py, pull all 13 series | Completed |
+| 2026-08-14 | Create fetch_data.py, pull all 14 series (13 indicators + USREC) | Completed |
 | 2026-08-14 | Merge to monthly resolution, generate plots | Completed |
-| 2026-08-14 | Push to Git | In Progress |
+| 2026-08-14 | Initial Git commits, push to GitHub | Completed |
+| 2026-08-15 | Plot refinements: forward-fill quarterly/annual, recession shading, start 1990 | Completed |
+| 2026-08-16 | COVID period econometrics (covid_analysis.py): OLS models, correlation, lag analysis | Completed |
+| 2026-08-18 | Forecasting (forecast.py): ARMA, ARIMA, VAR, VECM with 2019-2023 holdout | Completed |
+| 2026-08-18 | README documentation with full results and plots | Completed |
+| 2026-08-18 | Fix requirements (statsmodels, numpy), move API key to .env, doc sync | Completed |
